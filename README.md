@@ -28,8 +28,8 @@ By centering around a structured data model, CaptionLayer can power:
 - Web-based waveform UI and caption editor
 
 ### Backend
-- Next.js Route Handlers (API routes)
-- Asynchronous job/project orchestration via queues
+- FastAPI (Python) for core API endpoints and business logic
+- Asynchronous job/project orchestration via workers
 
 ### Processing Workers (Python)
 - ASR for transcription 

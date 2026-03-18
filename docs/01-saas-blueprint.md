@@ -126,9 +126,9 @@ The moat should come from these layers, in this order:
 
 ### Backend API
 
-- FastAPI or Node backend
+- FastAPI (Python) backend
 - auth
-- project/job orchestration
+- project/job orchestration via workers
 - export handling
 - billing hooks
 

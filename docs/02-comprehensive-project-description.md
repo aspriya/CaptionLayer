@@ -206,8 +206,8 @@ Support two classes of output:
 
 ### Backend
 
-* FastAPI preferred for processing-oriented backend
-* or Node/TypeScript if unified stack is preferred
+* FastAPI (Python) backend for all core API logic, project orchestration, and processing triggers
+* Utilizes asynchronous job workers
 
 ### Workers
 

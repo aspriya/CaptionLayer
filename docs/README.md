@@ -7,8 +7,6 @@ Core principle:
 - Canonical truth = structured caption timeline JSON
 - Everything else is derived (SRT, VTT, ASS, video)
 
-
-
 This folder contains the requested Markdown documents:
 
 1. `01-saas-blueprint.md`

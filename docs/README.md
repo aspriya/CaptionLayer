@@ -17,6 +17,7 @@ This folder contains the requested Markdown documents:
 6. `06-api-endpoints.md`
 7. `07-processing-pipeline.md`
 8. `08-mvp-feature-set.md`
+9. `09-deployment-strategy.md`
 
 These documents are internally aligned around one core architecture decision:
 

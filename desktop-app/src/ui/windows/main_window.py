@@ -2,7 +2,7 @@ import sys
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QPushButton, QLabel, QListWidget, QFrame, QSplitter,
-    QFileDialog, QMessageBox, QInputDialog, QStackedWidget, QTableWidget, QTableWidgetItem, QHeaderView, QLineEdit
+    QFileDialog, QMessageBox, QInputDialog, QStackedWidget, QTableWidget, QTableWidgetItem, QHeaderView, QLineEdit, QTextEdit
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QPalette, QColor
@@ -55,6 +55,12 @@ class MainWindow(QMainWindow):
         app_title.setFont(QFont("Segoe UI", 16, QFont.Bold))
         app_title.setStyleSheet("color: white;")
         sidebar_layout.addWidget(app_title)
+
+        self.project_name_label = QLabel("No Project Active")
+        self.project_name_label.setFont(QFont("Segoe UI", 10))
+        self.project_name_label.setStyleSheet("color: #aaaaaa; margin-bottom: 10px;")
+        self.project_name_label.setWordWrap(True)
+        sidebar_layout.addWidget(self.project_name_label)
         
         self.btn_new_project = QPushButton("New Project")
         self.btn_new_project.setStyleSheet(self.btn_style(primary=True))
@@ -81,6 +87,12 @@ class MainWindow(QMainWindow):
         self.btn_workspace.setStyleSheet(self.btn_style())
         self.btn_workspace.clicked.connect(lambda: self.main_stack.setCurrentIndex(0))
         sidebar_layout.addWidget(self.btn_workspace)
+
+        self.btn_code_view = QPushButton("Code / JSON View")
+        self.btn_code_view.setStyleSheet(self.btn_style())
+        self.btn_code_view.setEnabled(False)
+        self.btn_code_view.clicked.connect(self.show_code_view)
+        sidebar_layout.addWidget(self.btn_code_view)
 
         self.btn_config = QPushButton("Configuration")
         self.btn_config.setStyleSheet(self.btn_style())
@@ -208,6 +220,35 @@ class MainWindow(QMainWindow):
 
         self.main_stack.addWidget(self.config_widget)
 
+        # --- Code / JSON View Screen (Index 2) ---
+        self.code_widget = QWidget()
+        self.code_widget.setStyleSheet("background-color: #252526;")
+        code_layout = QVBoxLayout(self.code_widget)
+        code_layout.setContentsMargins(20, 20, 20, 20)
+
+        code_header_layout = QHBoxLayout()
+        code_header = QLabel("Code / JSON View")
+        code_header.setFont(QFont("Segoe UI", 14))
+        code_header.setStyleSheet("color: white;")
+        code_header_layout.addWidget(code_header)
+        
+        btn_export_from_code = QPushButton("Export from here...")
+        btn_export_from_code.setStyleSheet(self.btn_style(primary=True))
+        btn_export_from_code.clicked.connect(self.handle_export)
+        code_header_layout.addWidget(btn_export_from_code)
+        code_header_layout.addStretch()
+        
+        code_layout.addLayout(code_header_layout)
+
+        self.json_text_edit = QTextEdit()
+        self.json_text_edit.setReadOnly(True)
+        self.json_text_edit.setStyleSheet(
+            "QTextEdit { background-color: #1e1e1e; color: #d4d4d4; font-family: Consolas, monospace; font-size: 13px; border: 1px solid #333; padding: 10px; }"
+        )
+        code_layout.addWidget(self.json_text_edit)
+        
+        self.main_stack.addWidget(self.code_widget)
+
         # Add to splitter
         splitter.addWidget(sidebar)
         splitter.addWidget(self.main_stack)
@@ -242,6 +283,28 @@ class MainWindow(QMainWindow):
         self.main_stack.setCurrentIndex(1)
         self.refresh_environment_status()
 
+    def show_code_view(self):
+        # Update JSON view before showing
+        if self.current_timeline_path and self.current_timeline_path.exists():
+            try:
+                with open(self.current_timeline_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    
+                # Update text changes from workspace before showing JSON
+                for row in range(self.timeline_table.rowCount()):
+                    if row < len(data.get("segments", [])):
+                        edited_text = self.timeline_table.item(row, 2).text()
+                        data["segments"][row]["text"] = edited_text
+                
+                formatted_json = json.dumps(data, indent=2)
+                self.json_text_edit.setText(formatted_json)
+            except Exception as e:
+                self.json_text_edit.setText(f"Error loading JSON: {e}")
+        else:
+            self.json_text_edit.setText("No timeline generated yet.")
+            
+        self.main_stack.setCurrentIndex(2)
+
     def refresh_environment_status(self):
         has_ffmpeg = EnvironmentChecker.check_ffmpeg()
         has_models = EnvironmentChecker.check_models_downloaded()
@@ -270,13 +333,28 @@ class MainWindow(QMainWindow):
     def handle_new_project(self):
         name, ok = QInputDialog.getText(self, "New Project", "Enter Project Name:")
         if ok and name:
-            try:
-                p_dir = self.pm.create_project(name)
-                self.status_label.setText(f"Status: Project '{name}' created at {p_dir}")
-                self.btn_import_audio.setEnabled(True)
-                self.timeline_table.setRowCount(0)
-            except Exception as e:
-                QMessageBox.critical(self, "Error", f"Could not create project:\n{e}")
+            # Let user choose parent directory
+            parent_dir = QFileDialog.getExistingDirectory(
+                self, 
+                "Select Project Location", 
+                str(self.pm.base_workspace_dir),
+                QFileDialog.ShowDirsOnly
+            )
+            
+            if parent_dir:
+                try:
+                    p_dir = self.pm.create_project(name, parent_dir=parent_dir)
+                    self.status_label.setText(f"Status: Project '{name}' created at {p_dir}")
+                    self.project_name_label.setText(f"Active Project:\n{name}")
+                    self.project_name_label.setStyleSheet("color: #4CAF50; margin-bottom: 10px; font-weight: bold;")
+                    self.btn_import_audio.setEnabled(True)
+                    self.btn_export.setEnabled(False)
+                    self.btn_code_view.setEnabled(False)
+                    self.timeline_table.setRowCount(0)
+                    self.current_timeline_path = None
+                    self.setWindowTitle(f"CaptionLayer Workflow - {name}")
+                except Exception as e:
+                    QMessageBox.critical(self, "Error", f"Could not create project:\n{e}")
 
     def handle_import_audio(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Select Audio File", "", "Audio Files (*.mp3 *.wav *.m4a *.mp4)")
@@ -302,6 +380,7 @@ class MainWindow(QMainWindow):
     def handle_transcription_finished(self, timeline_path):
         self.btn_import_audio.setEnabled(True)
         self.btn_export.setEnabled(True)
+        self.btn_code_view.setEnabled(True)
         self.current_timeline_path = Path(timeline_path)
         self.status_label.setText("Status: Transcription and Alignment complete.")
 
@@ -358,20 +437,30 @@ class MainWindow(QMainWindow):
             base_export_name = f"{timeline.project_metadata.name}_export"
             default_path = str(self.pm.current_project_dir / "exports" / base_export_name)
             
-            export_path, _ = QFileDialog.getSaveFileName(
+            export_path, selected_filter = QFileDialog.getSaveFileName(
                 self, 
                 "Export Subtitles",
                 default_path,
-                "All Files (*)"
+                "All Formats (*.*);;JSON (*.json);;SubRip (*.srt);;WebVTT (*.vtt)"
             )
             
             if export_path:
                 export_path_obj = Path(export_path)
-                self.exporter.export_all(timeline, export_path_obj)
+                
+                # Determine which exporter method to call based on filter
+                if "JSON" in selected_filter:
+                    self.exporter.export_json(timeline, export_path_obj.with_suffix('.json'))
+                elif "SubRip" in selected_filter:
+                    self.exporter.export_srt(timeline, export_path_obj.with_suffix('.srt'))
+                elif "WebVTT" in selected_filter:
+                    self.exporter.export_vtt(timeline, export_path_obj.with_suffix('.vtt'))
+                else:
+                    self.exporter.export_all(timeline, export_path_obj)
+
                 QMessageBox.information(
                     self, 
                     "Export Successful", 
-                    f"Successfully exported VTT, SRT, and JSON to:\n{export_path_obj.parent}"
+                    f"Successfully exported to:\n{export_path_obj.parent}"
                 )
                 
         except Exception as e:

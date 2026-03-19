@@ -12,12 +12,15 @@ class ProjectManager:
         # Ensure base workspace exists
         self.base_workspace_dir.mkdir(parents=True, exist_ok=True)
 
-    def create_project(self, project_name: str) -> Path:
+    def create_project(self, project_name: str, parent_dir: Optional[str] = None) -> Path:
         """Create a new local project structure."""
         safe_name = "".join(c for c in project_name if c.isalnum() or c in (' ', '-', '_')).rstrip()
         safe_name = safe_name.replace(' ', '_').lower()
         
-        project_dir = self.base_workspace_dir / safe_name
+        # Override the base_workspace_dir if a specific parent_dir is provided
+        base_dir = Path(parent_dir) if parent_dir else self.base_workspace_dir
+        
+        project_dir = base_dir / safe_name
         if project_dir.exists():
             raise FileExistsError(f"Project directory {project_dir} already exists.")
             

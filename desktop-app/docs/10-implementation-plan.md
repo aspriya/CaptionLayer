@@ -32,6 +32,13 @@ Implementing a local-first desktop application for caption processing using Pyth
 1. Implement the Export Module to output the canonical JSON file.
 2. Add background thread workers for PySide6 to ensure the UI remains responsive during long-running tasks.
 
+**Phase 5: UX Improvements & Advanced Export (Completed)**
+1. Update `project_manager.py` and the UI to allow selecting the parent directory when creating a new project.
+2. Modify `main_window.py` to prominently display the active project name in the application title bar and/or a visible header in the project workspace area.
+3. Update the Export dialog/workflow to allow the user to select the destination folder (defaulting to `{project_dir}/exports/`).
+4. Implement a "Code / JSON View" tab in the `main_window.py` to let the user inspect the compiled timeline JSON directly inside the app.
+5. Add capabilities to export multiple formats (JSON, SRT, VTT) directly from the new Code/JSON view.
+
 **Relevant files**
 - `desktop-app/src/domain/schemas/timeline.py` — The core Pydantic data models for the timeline.
 - `desktop-app/src/pipeline/alignment/whisperx_adapter.py` — A wrapper around WhisperX to abstract the ASR/Alignment tasks.

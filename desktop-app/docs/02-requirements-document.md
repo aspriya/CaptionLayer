@@ -34,8 +34,9 @@ The desktop application does not need:
 
 The app shall allow the user to:
 
-- create a new project
+- create a new project and select the root directory/location for the project folder
 - open an existing local project
+- prominently display the active project name in the application window
 - rename a project
 - save project state locally
 - reopen the last-used or recent projects
@@ -103,9 +104,11 @@ The app shall allow the user to:
 
 The app shall:
 
-- export the canonical timeline as JSON
-- preserve structured metadata in the export
-- save the export to a user-selected local path
+- export the canonical timeline as JSON, SRT, or VTT
+- provide a dedicated view to inspect and preview the generated JSON output
+- allow initiating exports directly from the JSON view
+- preserve structured metadata in the JSON export
+- save the export to a user-selected local path, defaulting to the project's export directory
 
 ### 3.9 Settings and configuration
 

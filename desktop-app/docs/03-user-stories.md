@@ -4,7 +4,9 @@
 
 ### Project setup
 
-- As a creator, I want to create a local project so that I can organize work by audio asset or video episode.
+- As a creator, I want to create a local project and choose where to save the project folder (e.g., on an external drive) so that I can manage my storage space.
+- As a creator, I want to clearly see the active project name in the application window so that I always know which project I am currently working on.
+- As a creator, I want to organize work by audio asset or video episode.
 - As a creator, I want to reopen a saved project later so that I can continue editing without repeating processing.
 
 ### Input and processing
@@ -24,7 +26,10 @@
 
 ### Output
 
-- As a creator, I want to export the project as structured JSON so that I can use it in another renderer or workflow.
+- As a creator, I want to export the project as structured JSON, SRT, or VTT so that I can use it in another renderer, text editor, or timeline workflow.
+- As a creator, I want to view the raw JSON directly in the app before exporting so that I can verify the final raw structure.
+- As a creator, I want to export files directly from the JSON preview view for convenience.
+- As a creator, I want to choose the directory where exported files are saved, defaulting to a dedicated folder inside my project.
 - As a creator, I want the exported JSON to preserve timings and style metadata so that I do not lose important information.
 
 ## 2. Developer / Power User Stories
